@@ -1,6 +1,9 @@
 <div align="center">
-  <img width="475" height="475" alt="Blue Tosca Simple Medical Center Logo (1)" src="https://github.com/user-attachments/assets/586d44b0-e221-403c-8ab2-ddf0b04b922c" />
+
+  <img width="500" height="375" alt="Blue Tosca Simple Medical Center Logo (2)" src="https://github.com/user-attachments/assets/5139d475-154f-4964-b596-b0d4a96f7955" />
+
 </div>
+
 
 # CareNota
 
