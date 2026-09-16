@@ -1,5 +1,6 @@
-# CareNota 🏥
-<img width="500" height="500" alt="CareNota Logo 1" src="https://github.com/user-attachments/assets/fc00fd83-a6b0-4d59-af22-c04f56f6aed9" />
+<img width="500" height="500" alt="Blue Tosca Simple Medical Center Logo (1)" src="https://github.com/user-attachments/assets/586d44b0-e221-403c-8ab2-ddf0b04b922c" />
+
+# CareNota 
 
 ### Your Care, Now in Notes
 
