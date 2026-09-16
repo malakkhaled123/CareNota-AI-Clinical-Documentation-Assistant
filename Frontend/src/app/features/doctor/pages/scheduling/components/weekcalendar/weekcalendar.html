@@ -1,0 +1,110 @@
+<!-- components/weekcalendar/weekcalendar.html -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+  <!-- Week navigation -->
+  <div class="flex items-center justify-between bg-[#D6E8F7] px-5 py-3">
+    <button (click)="prevWeek()"
+            class="w-8 h-8 flex items-center justify-center rounded-full
+                   hover:bg-white/50 transition">
+      <svg class="w-4 h-4 text-[#4A7EBB]" fill="none" stroke="currentColor"
+           stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </button>
+
+    <p class="text-sm font-semibold text-[#4A7EBB]">{{ weekLabel }}</p>
+
+    <button (click)="nextWeek()"
+            class="w-8 h-8 flex items-center justify-center rounded-full
+                   hover:bg-white/50 transition">
+      <svg class="w-4 h-4 text-[#4A7EBB]" fill="none" stroke="currentColor"
+           stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Scrollable grid -->
+  <div class="overflow-x-auto">
+    <div style="min-width: 640px;">
+
+      <!-- Day headers -->
+      <div class="grid border-b border-gray-100"
+           style="grid-template-columns: 56px repeat(6, 1fr);">
+        <div></div>
+        @for (day of weekDays; track day.date) {
+          <div class="text-center py-3 border-l border-gray-100">
+            <!-- Short name on narrow screens -->
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+              {{ day.shortName }}
+            </p>
+            <!-- Date number — highlighted when today -->
+            <p class="text-sm font-bold mt-0.5 w-7 h-7 flex items-center justify-center
+                      mx-auto rounded-full transition-colors"
+               [class.bg-\[#2C6FAC\]]="day.isToday"
+               [class.text-white]="day.isToday"
+               [class.text-gray-700]="!day.isToday">
+              {{ day.date }}
+            </p>
+          </div>
+        }
+      </div>
+
+      <!-- Time rows -->
+      <div class="relative">
+        @for (slot of timeSlots; track slot.hour; let rowIdx = $index) {
+          <div class="grid border-gray-100"
+               [class.border-t]="rowIdx > 0"
+               style="grid-template-columns: 56px repeat(6, 1fr);">
+
+            <!-- Hour label -->
+            <div class="text-[11px] text-gray-400 text-right pr-3 pt-1
+                        font-medium leading-none select-none">
+              {{ slot.label }}
+            </div>
+
+            <!-- Day cells -->
+            @for (day of weekDays; track day.date; let dayIdx = $index) {
+              <div class="relative border-l border-gray-100"
+                   [style.height.px]="rowHeight">
+
+                @for (evt of getEvents(dayIdx, slot.hour); track evt.id) {
+                  <!--
+                    Colors are applied via [style] so they work even when Tailwind
+                    has not pre-generated the dynamic class names at build time.
+                    getPalette() returns { bg, border, text } hex strings.
+                  -->
+                  <div class="absolute left-1 right-1 rounded-xl px-2 py-1
+                              text-[11px] font-semibold cursor-pointer z-10
+                              shadow-sm hover:shadow-md hover:brightness-95
+                              transition-all select-none border-l-4 overflow-hidden"
+                       [style.background-color]="getPalette(evt).bg"
+                       [style.border-left-color]="getPalette(evt).border"
+                       [style.color]="getPalette(evt).text"
+                       [style.top.px]="getTopOffset(slot.hour, evt.startHour)"
+                       [style.height.px]="getEventHeight(evt.startHour, evt.endHour)">
+
+                    <!-- Time range -->
+                    <p class="leading-tight font-semibold opacity-80 truncate">
+                      {{ formatEventTime(evt.startHour, evt.endHour) }}
+                    </p>
+
+                    <!-- Patient name — bold, slightly larger -->
+                    <p class="leading-tight font-bold text-[12px] truncate mt-0.5">
+                      {{ evt.patientName }}
+                    </p>
+
+
+                  </div>
+                }
+
+              </div>
+            }
+
+          </div>
+        }
+      </div>
+
+    </div>
+  </div>
+</div>

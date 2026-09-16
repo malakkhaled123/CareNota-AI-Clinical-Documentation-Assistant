@@ -1,0 +1,204 @@
+<!-- src/app/features/doctor/pages/today-visit/today-visit.html -->
+<div class="min-h-screen bg-gray-100 font-sans">
+  <app-doctor-navbar />
+
+  <main class="max-w-3xl mx-auto px-4 py-8 space-y-6">
+
+    <!-- Header -->
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Today's Visits</h1>
+      <p class="text-sm text-gray-500 mt-1">{{ todayLabel }}</p>
+    </div>
+
+    <!-- Loading skeleton -->
+    @if (isLoading()) {
+      <div class="space-y-4">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="bg-white rounded-2xl p-5 animate-pulse">
+            <div class="h-4 bg-gray-200 rounded w-1/3 mb-3"></div>
+            <div class="h-3 bg-gray-100 rounded w-1/4"></div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Error -->
+    @if (error()) {
+      <div class="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-5 text-sm flex items-center justify-between gap-4">
+        <span>{{ error() }}</span>
+        <button (click)="loadAppointments()"
+                class="text-xs font-semibold underline hover:no-underline shrink-0">
+          Retry
+        </button>
+      </div>
+    }
+
+    <!-- Empty state -->
+    @if (!isLoading() && !error() && appointments().length === 0) {
+      <div class="bg-white rounded-2xl p-10 text-center">
+        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <p class="text-gray-500 text-sm font-medium">No scheduled appointments for today.</p>
+        <p class="text-gray-400 text-xs mt-1">Enjoy your day!</p>
+      </div>
+    }
+
+    <!-- Appointment cards -->
+    @if (!isLoading()) {
+      <div class="space-y-4">
+        @for (appt of appointments(); track appt.appointmentID) {
+          <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm
+                      flex items-center justify-between gap-4">
+
+            <!-- Left: time + patient info -->
+            <div class="flex items-center gap-4">
+
+              <!-- Time block -->
+              <div class="text-center min-w-14">
+                <p class="text-base font-bold text-navy">{{ formatTime(appt.startTime) }}</p>
+                <p class="text-xs text-gray-400">{{ formatTime(appt.endTime) }}</p>
+              </div>
+
+              <!-- Divider -->
+              <div class="w-px h-10 bg-gray-200"></div>
+
+              <!-- Patient avatar + info -->
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-linear-to-br from-blue-400 to-blue-600
+                            text-white text-xs font-bold flex items-center justify-center shrink-0">
+                  {{ appt.patientName.charAt(0) }}
+                </div>
+                <div>
+                  <p class="font-semibold text-gray-900">{{ appt.patientName }}</p>
+                  <p class="text-xs text-gray-500 mt-0.5">{{ appt.appointmentType }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: status + Start Visit -->
+<!-- Right: status + Start Visit -->
+<div class="flex items-center gap-3 shrink-0">
+  <span class="text-xs font-medium px-3 py-1 rounded-full border"
+        [ngClass]="statusClass(appt.status)">
+    {{ appt.status }}
+  </span>
+
+  @if (appt.status === 'Scheduled') {
+    <button
+      (click)="openModeModal(appt)"
+      [disabled]="loadingAppointmentId() === appt.appointmentID"
+      class="bg-navy text-white text-sm font-semibold px-5 py-2
+             rounded-full hover:bg-navy-dark transition-colors
+             disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2">
+
+      @if (loadingAppointmentId() === appt.appointmentID) {
+        <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+          <circle class="opacity-25" cx="12" cy="12" r="10"
+                  stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+        </svg>
+        Starting...
+      } @else {
+        Start Visit
+      }
+    </button>
+  }
+</div>
+
+          </div>
+        }
+      </div>
+    }
+
+  </main>
+</div>
+
+<!-- ── MODE SELECTION MODAL ─────────────────────────────────────────────────── -->
+@if (modeSelection()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+       (click)="closeModeModal()">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6"
+         (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-lg font-bold text-gray-900">How would you like to document this visit?</h2>
+        <button (click)="closeModeModal()" class="text-gray-400 hover:text-gray-700 transition-colors p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <p class="text-sm text-gray-500 mb-6">
+        Patient: <span class="font-semibold text-gray-800">{{ modeSelection()?.appointment?.patientName }}</span>
+      </p>
+
+      <!-- Two mode cards -->
+      <div class="grid grid-cols-2 gap-4 mb-6">
+
+        <!-- Record with AI -->
+        <button
+          (click)="confirmMode('recording')"
+          [disabled]="loadingAppointmentId() !== null"
+          class="flex flex-col items-center gap-3 p-5 rounded-2xl border-2 border-gray-200
+                 hover:border-blue-400 hover:bg-blue-50 transition-all group
+                 disabled:opacity-60 disabled:cursor-not-allowed text-center">
+          <div class="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center
+                      group-hover:bg-blue-200 transition-colors">
+            <svg class="w-7 h-7 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 1a4 4 0 014 4v6a4 4 0 01-8 0V5a4 4 0 014-4zm0 2a2 2 0 00-2 2v6a2 2 0 004 0V5a2 2 0 00-2-2zm-1 14.93V20H9v2h6v-2h-2v-2.07A8.001 8.001 0 004 11H2a10 10 0 0020 0h-2a8.001 8.001 0 00-7 2.93z"/>
+            </svg>
+          </div>
+          <div>
+            <p class="font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
+              Start Recording
+            </p>
+            <p class="text-xs text-gray-400 mt-1 leading-snug">
+              Record the consultation — AI generates SOAP notes automatically
+            </p>
+          </div>
+        </button>
+
+        <!-- Manual entry -->
+        <button
+          (click)="confirmMode('manual')"
+          [disabled]="loadingAppointmentId() !== null"
+          class="flex flex-col items-center gap-3 p-5 rounded-2xl border-2 border-gray-200
+                 hover:border-indigo-400 hover:bg-indigo-50 transition-all group
+                 disabled:opacity-60 disabled:cursor-not-allowed text-center">
+          <div class="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center
+                      group-hover:bg-indigo-200 transition-colors">
+            <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+          </div>
+          <div>
+            <p class="font-semibold text-gray-900 group-hover:text-indigo-700 transition-colors">
+              Add Manual Notes
+            </p>
+            <p class="text-xs text-gray-400 mt-1 leading-snug">
+              Type SOAP notes directly — no recording needed
+            </p>
+          </div>
+        </button>
+
+      </div>
+
+      <!-- Loading indicator while visit is being created -->
+      @if (loadingAppointmentId() !== null) {
+        <div class="flex items-center justify-center gap-3 py-2 text-sm text-gray-500">
+          <svg class="w-4 h-4 animate-spin text-blue-600" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+          </svg>
+          Creating visit record…
+        </div>
+      }
+
+    </div>
+  </div>
+}

@@ -1,0 +1,214 @@
+﻿using CareNota.Data;
+using CareNota.Models;
+using CareNota.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
+
+namespace CareNota.Repositories;
+
+// ══════════════════════════════════════════════════════════════════════════════
+// VisitRepository
+// ══════════════════════════════════════════════════════════════════════════════
+
+public class VisitRepository : GenericRepository<Visit>, IVisitRepository
+{
+    private readonly ApplicationDbContext _Context;
+
+    public VisitRepository(ApplicationDbContext Context) : base(Context)
+    {
+        _Context = Context;
+    }
+
+    // Simple Get By Id
+    public async Task<Visit?> GetByIdAsync(int VisitId)
+        => await _Context.Visits.FindAsync(VisitId);
+
+    // Save Changes
+    public async Task SaveAsync()
+        => await _Context.SaveChangesAsync();
+
+    // Get Visit With Full Details
+    public async Task<Visit?> GetByIdWithDetailsAsync(int VisitId)
+      => await DbSet
+          .Include(V => V.Appointment)
+              .ThenInclude(A => A.Patient)
+                  .ThenInclude(P => P.User)
+          .Include(V => V.Appointment)
+              .ThenInclude(A => A.Receptionist)
+          .Include(V => V.Diagnoses)
+          .Include(V => V.Prescription)
+              .ThenInclude(P => P!.PrescriptionMedications)
+                  .ThenInclude(PM => PM.Medication)
+          .Include(V => V.LabTests)
+          .Include(V => V.AudioRecord)
+          .Include(V => V.AISummaries)
+          .FirstOrDefaultAsync(V => V.VisitID == VisitId);
+
+    // Get Visit By Appointment Id
+    public async Task<Visit?> GetByAppointmentIdAsync(int AppointmentId)
+        => await DbSet
+            .Include(V => V.Appointment)
+                .ThenInclude(A => A.Patient)
+                    .ThenInclude(P => P.User)
+            .FirstOrDefaultAsync(V => V.AppointmentID == AppointmentId);
+
+    // Get All Visits For Patient
+    public async Task<IEnumerable<Visit>> GetByPatientIdAsync(int PatientId)
+        => await DbSet
+            .Include(V => V.Appointment)
+                .ThenInclude(A => A.Patient)
+                    .ThenInclude(P => P.User)
+            .Include(V => V.Diagnoses)
+            .Where(V => V.Appointment.PatientID == PatientId)
+            .OrderByDescending(V => V.VisitDate)
+            .AsNoTracking()
+            .ToListAsync();
+
+    // Get Visit With Diagnoses
+    public async Task<Visit?> GetWithDiagnosesAsync(int VisitId)
+      => await DbSet
+          .Include(V => V.Diagnoses)
+          .FirstOrDefaultAsync(V => V.VisitID == VisitId);
+
+    // Get Visit With Prescription
+    public async Task<Visit?> GetWithPrescriptionAsync(int VisitId)
+        => await DbSet
+            .Include(V => V.Prescription)
+                .ThenInclude(P => P!.PrescriptionMedications)
+                    .ThenInclude(PM => PM.Medication)
+            .FirstOrDefaultAsync(V => V.VisitID == VisitId);
+
+    // Get Visit With Lab Tests
+    public async Task<Visit?> GetWithLabTestsAsync(int VisitId)
+        => await DbSet
+            .Include(V => V.LabTests)
+            .FirstOrDefaultAsync(V => V.VisitID == VisitId);
+}// ══════════════════════════════════════════════════════════════════════════════
+// DiagnosisRepository
+// ══════════════════════════════════════════════════════════════════════════════
+
+public class DiagnosisRepository : GenericRepository<Diagnosis>, IDiagnosisRepository
+{
+    public DiagnosisRepository(ApplicationDbContext Context) : base(Context) { }
+
+    public async Task<IEnumerable<Diagnosis>> GetByVisitIdAsync(int VisitId)
+        => await DbSet
+            .Where(D => D.VisitID == VisitId)
+            .AsNoTracking()
+            .ToListAsync();
+
+    public async Task<bool> ExistsForVisitAsync(int VisitId, string DiagnosisName)
+        => await DbSet
+            .AnyAsync(D => D.VisitID == VisitId &&
+                           D.DiagnosisName.ToLower() == DiagnosisName.ToLower());
+}
+// ══════════════════════════════════════════════════════════════════════════════
+// PrescriptionRepository
+// ══════════════════════════════════════════════════════════════════════════════
+public class PrescriptionRepository : GenericRepository<Prescription>, IPrescriptionRepository
+{
+    private readonly DbSet<PrescriptionMedication> _PrescriptionMedications;
+
+    public PrescriptionRepository(ApplicationDbContext Context) : base(Context)
+        => _PrescriptionMedications = Context.Set<PrescriptionMedication>();
+
+    public async Task<Prescription?> GetByVisitIdAsync(int VisitId)
+        => await DbSet
+            .Include(P => P.PrescriptionMedications)
+                .ThenInclude(PM => PM.Medication)
+            .FirstOrDefaultAsync(P => P.VisitID == VisitId);
+
+    public async Task<Prescription?> GetWithMedicationsAsync(int PrescriptionId)
+        => await DbSet
+            .Include(P => P.PrescriptionMedications)
+                .ThenInclude(PM => PM.Medication)
+            .FirstOrDefaultAsync(P => P.PrescriptionID == PrescriptionId);
+
+    public async Task<Prescription?> GetFullDetailsAsync(int PrescriptionId)
+        => await DbSet
+            .Include(P => P.Visit)
+                .ThenInclude(V => V.Appointment)
+                    .ThenInclude(A => A.Patient)
+                        .ThenInclude(Pt => Pt.User)
+            .Include(P => P.PrescriptionMedications)
+                .ThenInclude(PM => PM.Medication)
+            .Include(P => P.Reminders)
+            .FirstOrDefaultAsync(P => P.PrescriptionID == PrescriptionId);
+
+    public async Task AddMedicationAsync(PrescriptionMedication Pm)
+        => await _PrescriptionMedications.AddAsync(Pm);
+
+    public async Task RemoveMedicationAsync(int PrescriptionId, int MedicationId)
+    {
+        var Entity = await _PrescriptionMedications.FindAsync(PrescriptionId, MedicationId);
+        if (Entity is not null)
+            _PrescriptionMedications.Remove(Entity);
+    }
+
+    public Task UpdateMedicationAsync(PrescriptionMedication Pm)
+    {
+        _PrescriptionMedications.Update(Pm);
+        return Task.CompletedTask;
+    }
+
+    public async Task<PrescriptionMedication?> GetPrescriptionMedicationAsync(
+        int PrescriptionId, int MedicationId)
+        => await _PrescriptionMedications
+            .Include(PM => PM.Medication)
+            .FirstOrDefaultAsync(PM =>
+                PM.PrescriptionID == PrescriptionId &&
+                PM.MedicationID == MedicationId);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MedicationRepository
+// ══════════════════════════════════════════════════════════════════════════════
+public class MedicationRepository : GenericRepository<Medication>, IMedicationRepository
+{
+    public MedicationRepository(ApplicationDbContext Context) : base(Context) { }
+
+    public async Task<IEnumerable<Medication>> SearchByNameAsync(string Name)
+        => await DbSet
+            .Where(M => M.MedicationName.ToLower().Contains(Name.ToLower()))
+            .AsNoTracking()
+            .ToListAsync();
+
+    public async Task<IEnumerable<Medication>> GetByTypeAsync(string MedicationType)
+        => await DbSet
+            .Where(M => M.MedicationType.ToLower() == MedicationType.ToLower())
+            .AsNoTracking()
+            .ToListAsync();
+
+    public async Task<bool> NameExistsAsync(string MedicationName)
+        => await DbSet.AnyAsync(M => M.MedicationName.ToLower() == MedicationName.ToLower());
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LabTestRepository
+// ══════════════════════════════════════════════════════════════════════════════
+public class LabTestRepository : GenericRepository<LabTest>, ILabTestRepository
+{
+    public LabTestRepository(ApplicationDbContext Context) : base(Context) { }
+
+    public async Task<IEnumerable<LabTest>> GetByVisitIdAsync(int VisitId)
+        => await DbSet
+            .Where(L => L.VisitID == VisitId)
+            .AsNoTracking()
+            .ToListAsync();
+
+    public async Task<LabTest?> GetByIdWithVisitAsync(int LabTestId)
+        => await DbSet
+            .Include(L => L.Visit)
+                .ThenInclude(V => V.Appointment)
+                    .ThenInclude(A => A.Patient)
+                        .ThenInclude(P => P.User)
+            .FirstOrDefaultAsync(L => L.LabTestID == LabTestId);
+
+    public async Task<bool> UpdateResultUrlAsync(int LabTestId, string ResultUrl)
+    {
+        var LabTest = await DbSet.FindAsync(LabTestId);
+        if (LabTest is null) return false;
+        LabTest.TestResultURL = ResultUrl;
+        DbSet.Update(LabTest);
+        return true;
+    }
+}

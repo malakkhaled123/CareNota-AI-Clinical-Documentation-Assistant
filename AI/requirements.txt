@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+openai-whisper
+google-genai
+pydub
+torch
+requests
+python-multipart
+python-dotenv

@@ -1,0 +1,56 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+
+# .NET
+**/bin/
+**/obj/
+*.userprefs
+*.pdb
+*.dll
+*.nupkg
+*.pubxml
+*.publishsettings
+
+# Node / Angular
+**/node_modules/
+**/dist/
+**/.angular/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python
+**/__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# Secrets / local configuration
+.env
+.env.*
+!.env.example
+**/appsettings.Local.json
+**/appsettings.Secrets.json
+
+# Local audio / generated files
+*.wav
+*.mp3
+*.m4a
+*.flac
+**/temp_*
+**/coverage/
+
+# Local archives
+*.zip
+*.rar
