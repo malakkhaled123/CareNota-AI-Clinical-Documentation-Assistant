@@ -177,12 +177,16 @@ Clinical and patient data should never be committed to source control. API keys,
 - Malak Khaled
 - Nadeen Ahmed
 - Malak Badawy
+- Eman Ahmed
+- Somia Tarek
+- Amir Mohamed
+- Safie El Din Waleed
 
-**Field:** Health Informatics & Data Science
+**Field:** Healthcare Informatics & Data Analytics
 
 ## Academic Project
 
-Graduation Project II — Spring 2026
+Graduation Project II — Spring 2026 - Faculty of Computers and Data Sciences Alexandria University 
 
 ## License
 
