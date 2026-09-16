@@ -11,7 +11,30 @@
 
 CareNota is an AI-assisted clinical documentation and clinic management system designed to reduce the administrative workload of healthcare professionals. It combines consultation recording, speech-to-text, AI-powered clinical documentation, patient management, appointments, and visit records in one platform.
 
-## 🎥 Demo
+## 🚀 Live Demo
+
+**[Open CareNota Live Demo](https://carenota-frontend-bnceh7czbfdkctd4.polandcentral-01.azurewebsites.net/auth/login)**
+
+### Demo Credentials
+
+All demo accounts use the password:
+
+**`Test@1234`**
+
+| Role | Email |
+|---|---|
+| **Admin** | `admin@carenota.com` |
+| **Doctor** | `dr.ahmed@carenota.com` |
+| **Doctor** | `dr.omar@carenota.com` |
+| **Doctor** | `dr.sara@carenota.com` |
+| **Receptionist** | `rec.karim@carenota.com` |
+| **Receptionist** | `rec.nada@carenota.com` |
+| **Patient** | `patient1@carenota.com` – `patient10@carenota.com` |
+
+> These accounts are provided for demonstration and testing purposes.
+
+
+## 🎥 Demo Video
 
 **[▶ Watch the CareNota Demo - Youtube](https://www.youtube.com/watch?v=kApm0344Oc8)**
 
@@ -228,12 +251,9 @@ API keys, database credentials, storage keys, email passwords, and JWT signing k
 
 ---
 
-## Project Team
+## Project Team 
 
-**Team Leader & AI Developer:** Malak Khaled
-
-**Team Members:**
-
+* **Team Leader :** Malak Khaled
 * Nadeen Ahmed
 * Malak Badawy
 * Eman Ahmed
