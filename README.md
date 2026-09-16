@@ -1,4 +1,5 @@
 # CareNota 🏥
+<img width="500" height="500" alt="CareNota Logo 1" src="https://github.com/user-attachments/assets/fc00fd83-a6b0-4d59-af22-c04f56f6aed9" />
 
 ### Your Care, Now in Notes
 
